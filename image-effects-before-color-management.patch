@@ -1,0 +1,350 @@
+Index: Scribus/scribus/pageitem.cpp
+===================================================================
+--- Scribus/scribus/pageitem.cpp	(Revision 26264)
++++ Scribus/scribus/pageitem.cpp	(Arbeitskopie)
+@@ -9796,7 +9796,7 @@
+ 		imgcache.addModifier("effectsInUse", getImageEffectsModifier());
+ 
+ 	bool fromCache = false;
+-	if (!pixm.loadPicture(imgcache, fromCache, pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, gsRes, &dummy, showMsg))
++	if (!pixm.loadPicture(imgcache, fromCache, pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, gsRes, &dummy, showMsg, &effectsInUse, &(m_Doc->PageColors)))
+ 	{
+ 		Pfile = fi.absoluteFilePath();
+ 		imageIsAvailable = false;
+@@ -10024,7 +10024,6 @@
+ 			effectsInUse.append(ef);
+ 			imgcache.addModifier("effectsInUse", getImageEffectsModifier());
+ 		}
+-		pixm.applyEffect(effectsInUse, m_Doc->PageColors, false);
+ //		if (reload)
+ 			pixm.imgInfo.lowResType = lowResTypeBack;
+ 		if (pixm.imgInfo.lowResType != 0)
+Index: Scribus/scribus/pdflib_core.cpp
+===================================================================
+--- Scribus/scribus/pdflib_core.cpp	(Revision 26264)
++++ Scribus/scribus/pdflib_core.cpp	(Arbeitskopie)
+@@ -9166,7 +9166,7 @@
+ 						{
+ 							CMSettings cms(ite->doc(), "", Intent_Perceptual);
+ 							cms.allowColorManagement(false);
+-							img.loadPicture(ite->Pfile2, 1, cms, ScImage::RGBData, 72);
++							img.loadPicture(ite->Pfile2, 1, cms, ScImage::RGBData, 72, (bool *)0, false, &(ite->effectsInUse), &(ite->doc()->PageColors));
+ 							QByteArray im;
+ 							img3.getAlpha(ite->Pfile2, 1, im, true, false);
+ 							IconOb += !im.isEmpty() ? 3 : 2;
+@@ -9178,7 +9178,7 @@
+ 						{
+ 							CMSettings cms(ite->doc(), "", Intent_Perceptual);
+ 							cms.allowColorManagement(false);
+-							img2.loadPicture(ite->Pfile3, 1, cms, ScImage::RGBData, 72);
++							img2.loadPicture(ite->Pfile3, 1, cms, ScImage::RGBData, 72, (bool *)0, false, &(ite->effectsInUse), &(ite->doc()->PageColors));
+ 							QByteArray im;
+ 							img3.getAlpha(ite->Pfile3, 1, im, true, false);
+ 							IconOb += !im.isEmpty() ? 3 : 2;
+@@ -10679,17 +10679,17 @@
+ 					CMSettings cms(item->doc(), Profil, Intent);
+ 					cms.setUseEmbeddedProfile(Embedded);
+ 					if (Options.UseRGB)
+-						imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl);
++						imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl, (bool *)0, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 					else
+ 					{
+ 						if ((doc.HasCMS) && (Options.UseProfiles2))
+-							imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl);
++							imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl, (bool *)0, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 						else
+ 						{
+ 							if (Options.isGrayscale)
+-								imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl);
++								imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl, (bool *)0, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 							else
+-								imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::CMYKData, afl);
++								imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::CMYKData, afl, (bool *)0, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 						}
+ 					}
+ 				}
+@@ -10726,17 +10726,17 @@
+ 							CMSettings cms(item->doc(), Profil, Intent);
+ 							cms.setUseEmbeddedProfile(Embedded);
+ 							if (Options.UseRGB)
+-								imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl);
++								imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl, (bool *)0, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 							else
+ 							{
+ 								if ((doc.HasCMS) && (Options.UseProfiles2))
+-									imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl);
++									imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl, (bool *)0, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 								else
+ 								{
+ 									if (Options.isGrayscale)
+-										imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl);
++										imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, afl, (bool *)0, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 									else
+-										imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::CMYKData, afl);
++										imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::CMYKData, afl, (bool *)0, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 								}
+ 							}
+ 						}
+@@ -10765,17 +10765,17 @@
+ 				CMSettings cms(item->doc(), Profil, Intent);
+ 				cms.setUseEmbeddedProfile(Embedded);
+ 				if (Options.UseRGB)
+-					imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, 72, &realCMYK);
++					imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, 72, &realCMYK, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 				else
+ 				{
+ 					if ((doc.HasCMS) && (Options.UseProfiles2))
+-						imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RawData, 72, &realCMYK);
++						imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RawData, 72, &realCMYK, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 					else
+ 					{
+ 						if (Options.isGrayscale)
+-							imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, 72, &realCMYK);
++							imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, 72, &realCMYK, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 						else
+-							imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::CMYKData, 72, &realCMYK);
++							imageLoaded = img.loadPicture(fn, item->pixm.imgInfo.actualPageNumber, cms, ScImage::CMYKData, 72, &realCMYK, false, &(item->effectsInUse), &(item->doc()->PageColors));
+ 					}
+ 				}
+ 				if (!imageLoaded)
+@@ -10966,7 +10966,6 @@
+ 				imgE = !((Options.UseProfiles2) && (img.imgInfo.colorspace != ColorSpaceCMYK));
+ 			origWidth = img.width();
+ 			origHeight = img.height();
+-			img.applyEffect(item->effectsInUse, item->doc()->PageColors, imgE);
+ 			if (!((Options.RecalcPic) && (Options.PicRes < (qMax(72.0 / item->imageXScale(), 72.0 / item->imageYScale())))))
+ 			{
+ 				ImInfo.sxa = sx * (1.0 / ImInfo.reso);
+Index: Scribus/scribus/scimage.cpp
+===================================================================
+--- Scribus/scribus/scimage.cpp	(Revision 26264)
++++ Scribus/scribus/scimage.cpp	(Arbeitskopie)
+@@ -2195,7 +2195,8 @@
+ }
+ 
+ bool ScImage::loadPicture(ScImageCacheProxy & cache, bool & fromCache, int page, const CMSettings& cmSettings,
+-						  RequestType requestType, int gsRes, bool *realCMYK, bool showMsg)
++						  RequestType requestType, int gsRes, bool *realCMYK, bool showMsg,
++						  ScImageEffectList* effectsList, ColorList* colors)
+ {
+ 	if (cache.enabled())
+ 	{
+@@ -2211,6 +2212,7 @@
+ 		cache.addModifier("doGamutCheck", QString::number(static_cast<int>(cmSettings.doGamutCheck())));
+ 		cache.addModifier("useBlackPoint", QString::number(static_cast<int>(cmSettings.useBlackPoint())));
+ 		cache.addModifier("imageRenderingIntent", QString::number(static_cast<int>(cmSettings.imageRenderingIntent())));
++		//FIXME image effects and colors
+ 		addProfileToCacheModifiers(cache, "monitor", cmSettings.monitorProfile());
+ 		addProfileToCacheModifiers(cache, "printer", cmSettings.printerProfile());
+ 
+@@ -2225,7 +2227,7 @@
+ 	else
+ 		fromCache = false;
+ 
+-	return loadPicture(cache.getFilename(), page, cmSettings, requestType, gsRes, realCMYK, showMsg);
++	return loadPicture(cache.getFilename(), page, cmSettings, requestType, gsRes, realCMYK, showMsg, effectsList, colors);
+ }
+ 
+ bool ScImage::saveCache(ScImageCacheProxy & cache)
+@@ -2234,7 +2236,8 @@
+ }
+ 
+ bool ScImage::loadPicture(const QString & fn, int page, const CMSettings& cmSettings,
+-						  RequestType requestType, int gsRes, bool *realCMYK, bool showMsg)
++						  RequestType requestType, int gsRes, bool *realCMYK, bool showMsg,
++						  ScImageEffectList* effectsList, ColorList* colors)
+ {
+ 	// requestType - 0: CMYK, 1: RGB, 3 : RawData, 4: Thumbnail
+ 	// gsRes - is the resolution that ghostscript will render at
+@@ -2251,7 +2254,10 @@
+ 	QString profileName;
+ 	bool hasEmbeddedProfile = false;
+ 	ScColorTransform xform;
++	ScColorTransform xform_afterEffects = 0;
+ 	ScColorProfile inputProf;
++	ScColorProfile intermediateProf = 0;
++	eColorFormat intermediateFormat = Format_BGRA_8;
+ 
+ 	QFileInfo fi(fn);
+ 	if (!fi.exists())
+@@ -2366,7 +2372,10 @@
+ 		if (isNull())
+ 			return  ret;
+ 	}
+-
++	if (!isNull() && effectsList)
++	{
++		applyEffect(*effectsList, *colors, isCMYK);
++	}
+ 	QByteArray embeddedProfile = pDataLoader->embeddedProfile();
+ 	if (cmSettings.useColorManagement())
+ 	{
+@@ -2439,7 +2448,16 @@
+ 			outputProfFormat = Format_BGRA_8;
+ 		else if (outputProfColorSpace == ColorSpace_Cmyk)
+ 			outputProfFormat = Format_YMCK_8;
++		if (effectsList && (extensionIndicatesPSD(ext) || extensionIndicatesTIFF(ext)) && inputProfColorSpace == ColorSpace_Rgb)
++			intermediateProf = cmSettings.doc()->DocInputImageRGBProf;
++		else if (effectsList && (extensionIndicatesPSD(ext) || extensionIndicatesTIFF(ext)) && inputProfColorSpace == ColorSpace_Cmyk)
++		{
++			intermediateProf = cmSettings.doc()->DocInputImageCMYKProf;
++			intermediateFormat = Format_YMCK_8;
++		}
++		
+ 		ScColorSpace inputCSpace  = engine.createColorSpace(inputProf, inputProfFormat);
++		ScColorSpace intermediateCSpace  = engine.createColorSpace(intermediateProf, intermediateFormat);
+ 		ScColorSpace screenCSpace = engine.createColorSpace(screenProf, Format_BGRA_8);
+ 		ScColorSpace outputCSpace;
+ 		if (cmSettings.useColorManagement() && cmSettings.doSoftProofing())
+@@ -2456,7 +2474,15 @@
+ 		{
+ 		case CMYKData: // CMYK
+ //			if ((!isCMYK && (outputProfColorSpace == icSigCmykData)) || (isCMYK && (outputProfColorSpace == icSigRgbData)) )
++			if (intermediateProf)
++			{
++				xform = inputCSpace.createTransform(intermediateProf, intermediateFormat, cmSettings.imageRenderingIntent(), cmsFlags);
++				xform_afterEffects = intermediateCSpace.createTransform(printerProf, outputProfFormat, cmSettings.imageRenderingIntent(), cmsFlags);
++			}
++			else
++			{
+ 				xform = inputCSpace.createTransform(printerProf, outputProfFormat, cmSettings.imageRenderingIntent(), cmsFlags);
++			}
+ 			if (outputProfColorSpace != ColorSpace_Cmyk )
+ 				*realCMYK = isCMYK = false;
+ 			outputCSpace = engine.createColorSpace(printerProf, outputProfFormat);
+@@ -2463,6 +2489,7 @@
+ 			break;
+ 		case Thumbnail:
+ 		case RGBData: // RGB
++			//FIXME psd/tiff with intermediateProf &
+ 			if (cmSettings.useColorManagement() && cmSettings.doSoftProofing())
+ 			{
+ 				if ((imgInfo.profileName == cmSettings.defaultImageRGBProfile()) || (imgInfo.profileName == cmSettings.defaultImageCMYKProfile()))
+@@ -2502,6 +2529,10 @@
+ 			if (pDataLoader->useRawImage())
+ 			{
+ 				QImage::operator=(pDataLoader->r_image.convertToQImage(true, true));
++				if (effectsList)
++				{
++					applyEffect(*effectsList, *colors, isCMYK);
++				}
+ 				profileName = imgInfo.profileName;
+ 				hasEmbeddedProfile = imgInfo.isEmbedded;
+ 				imgInfo = pDataLoader->imageInfoRecord();
+@@ -2530,6 +2561,10 @@
+ 			if (pDataLoader->useRawImage())
+ 			{
+ 				QImage::operator=(QImage(pDataLoader->r_image.width(), pDataLoader->r_image.height(), QImage::Format_ARGB32));
++				if (effectsList)
++				{
++					applyEffect(*effectsList, *colors, isCMYK);
++				}
+ 				profileName = imgInfo.profileName;
+ 				hasEmbeddedProfile = imgInfo.isEmbedded;
+ 				imgInfo = pDataLoader->imageInfoRecord();
+@@ -2605,6 +2640,15 @@
+ 					}
+ 				}
+ 			}
++			if (xform_afterEffects)
++			{
++				applyEffect(*effectsList, *colors, isCMYK);
++				for (int i = 0; i < height(); i++)
++				{
++					uchar* ptr = scanLine(i);
++					xform_afterEffects.apply(ptr, ptr, width());
++				}
++			}
+ 		}
+ 	}
+ 	else
+@@ -2617,6 +2661,10 @@
+ 				if (extensionIndicatesPSD(ext) || extensionIndicatesTIFF(ext) || pDataLoader->useRawImage())
+ 				{
+ 					QImage::operator=(pDataLoader->r_image.convertToQImage(false));
++					if (effectsList)
++					{
++						applyEffect(*effectsList, *colors, isCMYK);
++					}
+ 					profileName = imgInfo.profileName;
+ 					hasEmbeddedProfile = imgInfo.isEmbedded;
+ 					imgInfo = pDataLoader->imageInfoRecord();
+@@ -2645,6 +2693,10 @@
+ 				if (extensionIndicatesPSD(ext) || extensionIndicatesTIFF(ext) || pDataLoader->useRawImage())
+ 				{
+ 					QImage::operator=(pDataLoader->r_image.convertToQImage(true, true));
++					if (effectsList)
++					{
++						applyEffect(*effectsList, *colors, isCMYK);
++					}
+ 					profileName = imgInfo.profileName;
+ 					hasEmbeddedProfile = imgInfo.isEmbedded;
+ 					imgInfo = pDataLoader->imageInfoRecord();
+@@ -2662,6 +2714,10 @@
+ 				if (extensionIndicatesPSD(ext) || extensionIndicatesTIFF(ext) || pDataLoader->useRawImage())
+ 				{
+ 					QImage::operator=(pDataLoader->r_image.convertToQImage(true));
++					if (effectsList)
++					{
++						applyEffect(*effectsList, *colors, isCMYK);
++					}
+ 					profileName = imgInfo.profileName;
+ 					hasEmbeddedProfile = imgInfo.isEmbedded;
+ 					imgInfo = pDataLoader->imageInfoRecord();
+@@ -2693,6 +2749,10 @@
+ 				if (extensionIndicatesPSD(ext) || extensionIndicatesTIFF(ext) || pDataLoader->useRawImage())
+ 				{
+ 					QImage::operator=(pDataLoader->r_image.convertToQImage(false));
++					if (effectsList)
++					{
++						applyEffect(*effectsList, *colors, isCMYK);
++					}
+ 					profileName = imgInfo.profileName;
+ 					hasEmbeddedProfile = imgInfo.isEmbedded;
+ 					imgInfo = pDataLoader->imageInfoRecord();
+@@ -2707,7 +2767,10 @@
+ 			if (extensionIndicatesPSD(ext) || extensionIndicatesTIFF(ext) || pDataLoader->useRawImage())
+ 			{
+ 				QImage::operator=(pDataLoader->r_image.convertToQImage(true, true));
+-				profileName = imgInfo.profileName;
++				if (effectsList)
++				{
++					applyEffect(*effectsList, *colors, isCMYK);
++				}				profileName = imgInfo.profileName;
+ 				hasEmbeddedProfile = imgInfo.isEmbedded;
+ 				imgInfo = pDataLoader->imageInfoRecord();
+ 				imgInfo.profileName = profileName;
+Index: Scribus/scribus/scimage.h
+===================================================================
+--- Scribus/scribus/scimage.h	(Revision 26264)
++++ Scribus/scribus/scimage.h	(Arbeitskopie)
+@@ -93,8 +93,8 @@
+ 
+ 	// Load an image into this ScImage instance
+ 	// TODO: document params, split into smaller functions
+-	bool loadPicture(const QString & fn, int page, const CMSettings& cmSettings, RequestType requestType, int gsRes, bool *realCMYK = 0, bool showMsg = false);
+-	bool loadPicture(ScImageCacheProxy & cache, bool & fromCache, int page, const CMSettings& cmSettings, RequestType requestType, int gsRes, bool *realCMYK = 0, bool showMsg = false);
++	bool loadPicture(const QString & fn, int page, const CMSettings& cmSettings, RequestType requestType, int gsRes, bool *realCMYK = 0, bool showMsg = false, ScImageEffectList* effectsList = NULL, ColorList* colors = NULL);
++	bool loadPicture(ScImageCacheProxy & cache, bool & fromCache, int page, const CMSettings& cmSettings, RequestType requestType, int gsRes, bool *realCMYK = 0, bool showMsg = false, ScImageEffectList* effectsList = NULL, ColorList* colors = NULL);
+ 	bool saveCache(ScImageCacheProxy & cache);
+ 
+ 	ImageInfoRecord imgInfo;
+Index: Scribus/scribus/scpageoutput.cpp
+===================================================================
+--- Scribus/scribus/scpageoutput.cpp	(Revision 26264)
++++ Scribus/scribus/scpageoutput.cpp	(Arbeitskopie)
+@@ -760,13 +760,12 @@
+ 			scImg.imgInfo.layerInfo.clear();
+ 			scImg.imgInfo.RequestProps = item->pixm.imgInfo.RequestProps;
+ 			scImg.imgInfo.isRequest = item->pixm.imgInfo.isRequest;
+-			scImg.loadPicture(item->Pfile, item->pixm.imgInfo.actualPageNumber, cmsSettings, translateImageModeToRequest(imageMode), m_imageRes, &dummy);
++			scImg.loadPicture(item->Pfile, item->pixm.imgInfo.actualPageNumber, cmsSettings, translateImageModeToRequest(imageMode), m_imageRes, &dummy, false, &(item->effectsInUse), &(m_doc->PageColors));
+ 			if (extensionIndicatesEPSorPS(ext) || extensionIndicatesPDF(ext))
+ 			{
+ 				imScaleX *= (PrefsManager::instance().appPrefs.extToolPrefs.gs_Resolution / (double) m_imageRes);
+ 				imScaleY *= (PrefsManager::instance().appPrefs.extToolPrefs.gs_Resolution / (double) m_imageRes);
+ 			}
+-			scImg.applyEffect(item->effectsInUse, m_doc->PageColors, useCmyk);
+ 			mode = imageMode;
+ 			pImage = &scImg;
+ 		}

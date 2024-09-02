@@ -1,0 +1,27 @@
+Index: Scribus/scribus/plugins/fileloader/scribus134format/scribus134format.cpp
+===================================================================
+--- Scribus/scribus/plugins/fileloader/scribus134format/scribus134format.cpp	(Revision 26264)
++++ Scribus/scribus/plugins/fileloader/scribus134format/scribus134format.cpp	(Arbeitskopie)
+@@ -2970,6 +2970,22 @@
+ 	else
+ 		currItem->setTextFlowMode(PageItem::TextFlowDisabled);
+ 	currItem->DashOffset = attrs.valueAsDouble("DASHOFF", 0.0);
++
++	currItem->setHasSoftShadow(attrs.valueAsBool("HASSOFTSHADOW", false));
++	currItem->setSoftShadowXOffset(attrs.valueAsDouble("SOFTSHADOWXOFFSET", 0.0));
++	currItem->setSoftShadowYOffset(attrs.valueAsDouble("SOFTSHADOWYOFFSET", 0.0));
++	currItem->setSoftShadowColor(attrs.valueAsString("SOFTSHADOWCOLOR", CommonStrings::None));
++	currItem->setSoftShadowShade(100);
++	currItem->setSoftShadowBlurRadius(attrs.valueAsDouble("SOFTSHADOWBLURRADIUS", 300.0));
++	currItem->setSoftShadowBlendMode(attrs.valueAsInt("SOFTSHADOWBLENDMODE", 0));
++	// For some reason when they integrated my shadow code into Scribus proper,
++	// they kept the name "opacity" but reversed the meaning so it's actually
++	// transparency, not opacity. I have no idea why, but we just invert it when
++	// loading a 1.3.4 file.
++	currItem->setSoftShadowOpacity(1.0 - attrs.valueAsDouble("SOFTSHADOWOPACITY", 0.0));
++	currItem->setSoftShadowErasedByObject(false);
++	currItem->setSoftShadowHasObjectTransparency(false);
++
+ 	currItem->setLocked (attrs.valueAsBool("LOCK", false));
+ 	currItem->setSizeLocked(attrs.valueAsBool("LOCKR", false));
+ 	currItem->setFillTransparency(attrs.valueAsDouble("TransValue", 0.0));
