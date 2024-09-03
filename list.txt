@@ -3,3 +3,4 @@ load-soft-shadows-from-134-files.patch
 image-orientation.patch
 auto-contrast.patch
 image-effects-before-color-management.patch
+keep-image-scale-and-position.patch

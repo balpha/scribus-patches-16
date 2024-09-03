@@ -1,0 +1,49 @@
+Index: Scribus/scribus/pageitem.cpp
+===================================================================
+--- Scribus/scribus/pageitem.cpp	(Revision 26264)
++++ Scribus/scribus/pageitem.cpp	(Arbeitskopie)
+@@ -9774,6 +9774,15 @@
+ 		return false;
+ 	QFileInfo fi(filename);
+ 	QString clPath(pixm.imgInfo.usedPath);
++	bool retainScaleAndPosition = !reload && ScaleType && OrigW > 0 && OrigH > 0;
++	bool syncRatioWhenRetaining = false;
++	int previousWidth = 0, previousHeight = 0;
++	if (retainScaleAndPosition)
++	{
++		previousWidth = OrigW;
++		previousHeight = OrigH;
++		syncRatioWhenRetaining = fabs(m_imageXScale - m_imageYScale) <= 0.0002;
++	}
+ 	pixm.imgInfo.valid = false;
+ 	pixm.imgInfo.clipPath.clear();
+ 	pixm.imgInfo.PDSpathData.clear();
+@@ -9829,10 +9838,24 @@
+ 		
+ 	if (Pfile != filename)
+ 	{
+-		oldLocalScX = m_imageXScale = 72.0 / xres;
+-		oldLocalScY = m_imageYScale = 72.0 / yres;
+-		oldLocalX = m_imageXOffset = 0;
+-		oldLocalY = m_imageYOffset = 0;
++		if (retainScaleAndPosition && pixm.width() > 0 && pixm.height() > 0)
++		{
++			double ratioX = static_cast<double>(previousWidth) / static_cast<double>(pixm.width());
++			double ratioY = static_cast<double>(previousHeight) / static_cast<double>(pixm.height());
++			if (syncRatioWhenRetaining)
++				ratioX = ratioY = qMax(ratioX, ratioY);
++			oldLocalScX = m_imageXScale = m_imageXScale * ratioX;
++			oldLocalScY = m_imageYScale = m_imageYScale * ratioY;
++			oldLocalX = m_imageXOffset = m_imageXOffset / ratioX;
++			oldLocalY = m_imageYOffset = m_imageYOffset / ratioY;
++		}
++		else
++		{
++			oldLocalScX = m_imageXScale = 72.0 / xres;
++			oldLocalScY = m_imageYScale = 72.0 / yres;
++			oldLocalX = m_imageXOffset = 0;
++			oldLocalY = m_imageYOffset = 0;
++		}		
+ 		if ((m_Doc->itemToolPrefs().imageUseEmbeddedPath) && (!pixm.imgInfo.clipPath.isEmpty()))
+ 		{
+ 			pixm.imgInfo.usedPath = pixm.imgInfo.clipPath;

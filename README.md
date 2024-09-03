@@ -52,6 +52,14 @@ This patch changes this order; image effects are applied on the original image d
 
 If you use both color management and image effects, this patch is a **major change**, and it's not hidden behind a setting -- all your files will suddenly behave differently. So make very sure you want to apply it.
 
+### Keep scale and position when replacing images
+
+When an image frame already contains a picture and you load a new one, Scribus resets the image's scaling and position. This patch changes this behavior in the following way: If the image frame is set to manual scaling (not fit-to-frame), then instead of resetting, the scale and position are adjusted by the ratios of the old image's width/height and the new image's width/height.
+
+The use case for this is replacing a picture with another picture that has the same content but different dimensions (for example, a higher-resolution scan of the same photo). With this patch, the new image would be cropped and scaled to show exactly what the old image did.
+
+If you replace an image with an unrelated image (and the frame uses manual scaling), the resulting scale and offset therefore won't make much sense, but a) this is probably rare, and b) with Scribus' built-in behavior, chances are that the values aren't the desired ones either, and thus you'd have to adjust them in either case.
+
 # License
 
 Scribus itself is copyright 2001–2024 Franz Schmid and rest of the members of the Scribus Team and for the most part licensed under GPLv2+. See their file [COPYING](https://github.com/scribusproject/scribus/blob/master/COPYING) for details.
