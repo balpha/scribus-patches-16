@@ -6,6 +6,10 @@ This is a work-in-progress port of my old patches to a modern version (1.6.2 at 
 
 # Description of the patches
 
+### Show soft hyphen in the story editor
+
+Since I like to tightly control the hyphenation of text, I often manually add soft hyphens (U+00AD) to my text. These characters are usually invisible, which makes this manual work hard to manage. This patch makes the soft hypens visible inside the story editor by displaying them as red dashes (similar to how other special characters like frame breaks are displayed).
+
 ### Load drop shadows from 1.3 / 1.4 files
 
 I have been using drop shadows (I called them "soft shadows") for over a decade in Scribus 1.3 and 1.4 using my patches. That functionality was eventually added natively to Scribus (based on my patch) in Scribus 1.5, but of course when loading a file that was created with an old version, current Scribus doesn't load the drop shadow data because in "real" old files, this feature didn't exist yet.

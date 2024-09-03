@@ -1,0 +1,69 @@
+Index: Scribus/scribus/ui/storyeditor.cpp
+===================================================================
+--- Scribus/scribus/ui/storyeditor.cpp	(Revision 26264)
++++ Scribus/scribus/ui/storyeditor.cpp	(Arbeitskopie)
+@@ -304,10 +304,12 @@
+ 		changed = true;
+ 	}
+ 	pos = -1;
++	bool softHyphen = false;
+ 	if (!uc.isEmpty())
+ 	{
+ 		pos = textCursor().hasSelection() ? textCursor().selectionStart() : textCursor().position();
+ 		pos = qMin(pos, StyledText.length());
++		softHyphen = uc.length() == 1 && uc[0].unicode() == 0x00ad;
+ 	}
+ 	QTextEdit::inputMethodEvent(event);
+ 	SuspendContentsChange = 0;
+@@ -321,6 +323,12 @@
+ 		emit SideBarUp(true);
+ 		emit SideBarUpdate();
+ 	}
++	if (softHyphen) {
++		updateAll();
++		QTextCursor cursor = textCursor();
++		cursor.setPosition(pos + 1);
++		setTextCursor(cursor);
++	}
+ }
+ 
+ void SEditor::keyPressEvent(QKeyEvent *k)
+@@ -402,7 +410,14 @@
+ 				{
+ 					if (conv < 31)
+ 						conv = 32;
+-					insertPlainText(QString(QChar(conv)));
++					if (conv == 0x00AD) // SHYPHEN
++					{
++						setColor(true);
++						insertChars(SpecialChars::SHYPHEN, "-");
++						setColor(false);
++					}
++					else
++						insertPlainText(QString(QChar(conv)));
+ 					emit SideBarUp(true);
+ 					emit SideBarUpdate();
+ 					return;
+@@ -779,7 +794,8 @@
+ 				ch == SpecialChars::FRAMEBREAK ||
+ 				ch == SpecialChars::COLBREAK ||
+ 				ch == SpecialChars::NBHYPHEN ||
+-				ch == SpecialChars::LINEBREAK)
++				ch == SpecialChars::LINEBREAK ||
++				ch == SpecialChars::SHYPHEN)
+ 		{
+ 			setAlign(pAli);
+ 			setDirection(dir);
+@@ -836,6 +852,12 @@
+ 			insertPlainText("*");
+ 			setColor(false);
+ 		}
++		else if (ch == SpecialChars::SHYPHEN)
++		{
++			setColor(true);
++			insertPlainText("-");
++			setColor(false);
++		}
+ 		else
+ 			text += ch;
+ 	}
