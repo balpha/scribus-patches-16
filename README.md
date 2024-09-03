@@ -16,6 +16,16 @@ I have been using drop shadows (I called them "soft shadows") for over a decade 
 
 This patch updates the scribus134 loader to also load drop shadow data, so that I can load my old files correctly. 
 
+### Image orientation
+
+This patch allows changing the orientation of an image in steps of 90 degrees without having to rotate the image frame. Scribus 1.5+ has this feature built in (with arbitrary angles), but 1.4.x didn't, and I have lots of files that make use of this patch. And because my orientation functionality cannot be easily converted to the native rotation functionality (because you'd need the dimensions of the image), I'm just keeping it around, even though I now have *two* ways to rotate images inside the image frame.
+
+While true for all these patches, this one especially is tailored to my use case: Easier handling of photos (in formats like TIF, PNG, JPEG) that aren't present in the proper orientation, and PDF output. I use Scribus exclusively for print design, so all I ever do is create PDFs. Therefore, just like with the soft shadows, I can't promise that this e.g. works with all exporters. It also does not or may not work correctly when the image is an embedded PDF or other special-case format.
+
+Also note that this is a fairly new patch and thus I may not have found all issues yet.
+
+Finally this, too, is a **file format change**. If you save a .sla document where you have changed an image's orientation, then open and re-save this document with an *unpatched* version of Scribus, the orientation will be back to zero even if you later open the file in the patched version again. Because vanilla Scribus doesn't know about this feature, it ignores the orientation setting when opening a document, and does not persist it when re-saving it.
+
 ### Auto contrast
 
 This patch adds a new image effect called "Auto contrast".

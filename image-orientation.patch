@@ -1,0 +1,211 @@
+Index: Scribus/dtd/scribus.dtd
+===================================================================
+--- Scribus/dtd/scribus.dtd	(Revision 26264)
++++ Scribus/dtd/scribus.dtd	(Arbeitskopie)
+@@ -270,6 +270,7 @@
+                     image-scale-proportional (yes | no) "yes"
+                     image-x-position CDATA "0"
+                     image-y-position CDATA "0"
++                    image-orientation CDATA "0"
+                     image-x-scale CDATA "1"
+                     image-y-scale CDATA "1"
+                     image-x-dpi CDATA "72"
+Index: Scribus/scribus/pdflib_core.cpp
+===================================================================
+--- Scribus/scribus/pdflib_core.cpp	(Revision 26264)
++++ Scribus/scribus/pdflib_core.cpp	(Arbeitskopie)
+@@ -10587,6 +10587,7 @@
+ 	if (ext.isEmpty())
+ 		ext = getImageType(fn);
+ 	ScImage img;
++	img.imgInfo.orientation = item->pixm.imgInfo.orientation;
+ 	QString BBox;
+ 	bool   found = false;
+ 	bool   alphaM = false;
+@@ -11039,7 +11040,7 @@
+ 			}
+ 			if (extensionIndicatesJPEG(ext) && (cm != PDFOptions::Compression_None))
+ 			{
+-				if (((Options.UseRGB || Options.UseProfiles2) && (cm == PDFOptions::Compression_Auto) && item->effectsInUse.isEmpty() && (img.imgInfo.colorspace == ColorSpaceRGB)) && (!img.imgInfo.progressive) && (!((Options.RecalcPic) && (Options.PicRes < (qMax(72.0 / item->imageXScale(), 72.0 / item->imageYScale()))))))
++				if (((img.imgInfo.orientation == 0) && (Options.UseRGB || Options.UseProfiles2) && (cm == PDFOptions::Compression_Auto) && item->effectsInUse.isEmpty() && (img.imgInfo.colorspace == ColorSpaceRGB)) && (!img.imgInfo.progressive) && (!((Options.RecalcPic) && (Options.PicRes < (qMax(72.0 / item->imageXScale(), 72.0 / item->imageYScale()))))))
+ 				{
+ 					// #12961 : we must not rely on PDF viewers taking exif infos into account
+ 					// So if JPEG orientation is non default, do not use the original file
+Index: Scribus/scribus/plugins/fileloader/scribus134format/scribus134format.cpp
+===================================================================
+--- Scribus/scribus/plugins/fileloader/scribus134format/scribus134format.cpp	(Revision 26264)
++++ Scribus/scribus/plugins/fileloader/scribus134format/scribus134format.cpp	(Arbeitskopie)
+@@ -2667,6 +2667,7 @@
+ 		currItem->UseEmbedded = attrs.valueAsInt("EMBEDDED", 1);
+ 		currItem->pixm.imgInfo.lowResType = attrs.valueAsInt("ImageRes", 1);
+ 		currItem->pixm.imgInfo.actualPageNumber = attrs.valueAsInt("Pagenumber", 0);
++		currItem->pixm.imgInfo.orientation = attrs.valueAsInt("ImageOrientation", 0);
+ 		if (currItem->isLatexFrame())
+ 		{
+ 			currItem->setImageXYOffset(attrs.valueAsDouble("LOCALX") * scx, attrs.valueAsDouble("LOCALY") * scy);
+Index: Scribus/scribus/plugins/fileloader/scribus150format/scribus150format.cpp
+===================================================================
+--- Scribus/scribus/plugins/fileloader/scribus150format/scribus150format.cpp	(Revision 26264)
++++ Scribus/scribus/plugins/fileloader/scribus150format/scribus150format.cpp	(Arbeitskopie)
+@@ -5271,6 +5271,7 @@
+ 		currItem->UseEmbedded = attrs.valueAsInt("EMBEDDED", 1);
+ 		currItem->pixm.imgInfo.lowResType = attrs.valueAsInt("ImageRes", 1);
+ 		currItem->pixm.imgInfo.actualPageNumber = attrs.valueAsInt("Pagenumber", 0);
++		currItem->pixm.imgInfo.orientation = attrs.valueAsInt("ImageOrientation", 0);
+ 		if ((currItem->OverrideCompressionMethod = attrs.hasAttribute("COMPRESSIONMETHOD")))
+ 			currItem->CompressionMethodIndex = attrs.valueAsInt("COMPRESSIONMETHOD", 0);
+ 		if ((currItem->OverrideCompressionQuality = attrs.hasAttribute("COMPRESSIONQUALITY")))
+Index: Scribus/scribus/plugins/fileloader/scribus150format/scribus150format_save.cpp
+===================================================================
+--- Scribus/scribus/plugins/fileloader/scribus150format/scribus150format_save.cpp	(Revision 26264)
++++ Scribus/scribus/plugins/fileloader/scribus150format/scribus150format_save.cpp	(Arbeitskopie)
+@@ -2821,6 +2821,7 @@
+ #endif
+ 	{
+ 		docu.writeAttribute("Pagenumber", item->pixm.imgInfo.actualPageNumber);
++		docu.writeAttribute("ImageOrientation", item->pixm.imgInfo.orientation);
+ 		if (item->isInlineImage)
+ 		{
+ 			docu.writeAttribute("PFILE", "");
+Index: Scribus/scribus/scimage.cpp
+===================================================================
+--- Scribus/scribus/scimage.cpp	(Revision 26264)
++++ Scribus/scribus/scimage.cpp	(Arbeitskopie)
+@@ -120,6 +120,7 @@
+ 	imgInfo.exifInfo.thumbnail = QImage();
+ 	imgInfo.BBoxX = 0;
+ 	imgInfo.BBoxH = 0;
++	imgInfo.orientation = 0;
+ }
+ 
+ ScImage::~ScImage()
+@@ -2328,8 +2329,22 @@
+ 
+ 	if (pDataLoader->loadPicture(fn, page, gsRes, (requestType == Thumbnail)))
+ 	{
+-		QImage::operator=(pDataLoader->image());
++		int oldRot = imgInfo.orientation;
+ 		imgInfo = pDataLoader->imageInfoRecord();
++		imgInfo.orientation = oldRot;
++		QImage img = pDataLoader->image();
++		if (oldRot != 0)
++		{
++			QMatrix mat;
++			mat.rotate(90.0 * oldRot);
++			img = img.transformed(mat);
++			if (oldRot % 2 == 1)
++			{
++				// some xres/yres swapping would be here -- don't care for now
++			}
++		}
++		QImage::operator=(img);
++
+ 		if (requestType == Thumbnail)
+ 			reqType = RGBData;
+ 	//	if (!cmSettings.useColorManagement() || !useProf)
+Index: Scribus/scribus/scimagestructs.h
+===================================================================
+--- Scribus/scribus/scimagestructs.h	(Revision 26264)
++++ Scribus/scribus/scimagestructs.h	(Arbeitskopie)
+@@ -210,6 +210,7 @@
+ 	QList<PSDLayer> layerInfo;
+ 	QList<PSDDuotone_Color> duotoneColors;
+ 	ExifValues exifInfo;
++	int orientation; /* 1=90°, 2=180°, ... */
+ };
+ 
+ #endif
+Index: Scribus/scribus/ui/propertiespalette_image.cpp
+===================================================================
+--- Scribus/scribus/ui/propertiespalette_image.cpp	(Revision 26264)
++++ Scribus/scribus/ui/propertiespalette_image.cpp	(Arbeitskopie)
+@@ -58,6 +58,12 @@
+ 	installSniffer(imageRotation);
+ 	imageRotationLabel->setBuddy(imageRotation);
+ 
++	imageOrientationLabel->setBuddy(imageOrientation);
++	imageOrientation->setDecimals(0);
++	imageOrientation->setSuffix("");
++	imageOrientation->setMinimum(0);
++	imageOrientation->setMaximum(3);
++
+ 	freeScale->setChecked( true );
+ 	
+ 	installSniffer(imageXScaleSpinBox);
+@@ -93,6 +99,7 @@
+ 	connect(imageXOffsetSpinBox, SIGNAL(valueChanged(double)), this, SLOT(handleLocalXY()));
+ 	connect(imageYOffsetSpinBox, SIGNAL(valueChanged(double)), this, SLOT(handleLocalXY()));
+ 	connect(imageRotation      , SIGNAL(valueChanged(double)), this, SLOT(handleLocalRotation()));
++	connect(imageOrientation   , SIGNAL(valueChanged(double)), this, SLOT(handleOrientation()));
+ 	connect(imgDpiX            , SIGNAL(valueChanged(double)), this, SLOT(handleDpiX()));
+ 	connect(imgDpiY            , SIGNAL(valueChanged(double)), this, SLOT(handleDpiY()));
+ 	connect(keepImageWHRatioButton , SIGNAL(clicked())       , this, SLOT(handleImageWHRatio()));
+@@ -522,6 +529,7 @@
+ 	if (m_item->imageRotation() > 0)
+ 		rrR = 360 - rrR;
+ 	imageRotation->showValue(fabs(rrR));
++	imageOrientation->setValue(m_item->pixm.imgInfo.orientation);
+ 
+ 	if (m_item->isImageFrame())
+ 	{
+@@ -587,6 +595,20 @@
+ 	}
+ }
+ 
++void PropertiesPalette_Image::handleOrientation()
++{
++	if (!m_ScMW || m_ScMW->scriptIsRunning())
++		return;
++	if (m_haveDoc && m_haveItem)
++	{
++		bool reallynew = (m_item->pixm.imgInfo.orientation != imageOrientation->value());
++		m_item->pixm.imgInfo.orientation = imageOrientation->value();
++		if (reallynew)
++			m_item->loadImage(m_item->externalFile(), true);
++		m_item->update();
++	}
++}
++
+ void PropertiesPalette_Image::handleScaling()
+ {
+ 	if (!m_ScMW || m_ScMW->scriptIsRunning())
+Index: Scribus/scribus/ui/propertiespalette_image.h
+===================================================================
+--- Scribus/scribus/ui/propertiespalette_image.h	(Revision 26264)
++++ Scribus/scribus/ui/propertiespalette_image.h	(Arbeitskopie)
+@@ -85,6 +85,7 @@
+ 	void handleLocalScale();
+ 	void handleLocalDpi();
+ 	void handleLocalRotation();
++	void handleOrientation();
+ 	void handleScaling();
+ 
+ 	void handleXScale();
+Index: Scribus/scribus/ui/propertiespalette_imagebase.ui
+===================================================================
+--- Scribus/scribus/ui/propertiespalette_imagebase.ui	(Revision 26264)
++++ Scribus/scribus/ui/propertiespalette_imagebase.ui	(Arbeitskopie)
+@@ -68,6 +68,23 @@
+        </property>
+       </widget>
+      </item>
++     <item row="5" column="0">
++      <widget class="QLabel" name="imageOrientationLabel">
++       <property name="text">
++        <string>Orientation in 90° steps:</string>
++       </property>
++      </widget>
++     </item>
++     <item row="5" column="1">
++      <widget class="ScrSpinBox" name="imageOrientation">
++       <property name="sizePolicy">
++        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
++         <horstretch>0</horstretch>
++         <verstretch>0</verstretch>
++        </sizepolicy>
++       </property>
++      </widget>
++     </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="imagePageNumberLabel">
+        <property name="text">
