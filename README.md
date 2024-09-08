@@ -52,6 +52,10 @@ This patch changes this order; image effects are applied on the original image d
 
 If you use both color management and image effects, this patch is a **major change**, and it's not hidden behind a setting -- all your files will suddenly behave differently. So make very sure you want to apply it.
 
+### Progress bar for image recalc during document load
+
+This is a very small patch. When opening a document that uses color management, Scribus will load every image twice. [Here's the corresponding bug report](http://bugs.scribus.net/view.php?id=9826). This patch does *not* fix this (it would be a pretty big change, given how image loading works behind the scenes). All this patch does is making this issue a bit more bearable, especially for documents with lots of images, by reflecting it in the progress indicator the status bar. That means the bar will fill up to 100% *twice* when loading a (color-managed) document. But at least there's no minute-long pause during which you have no idea what's happening.
+
 ### Keep scale and position when replacing images
 
 When an image frame already contains a picture and you load a new one, Scribus resets the image's scaling and position. This patch changes this behavior in the following way: If the image frame is set to manual scaling (not fit-to-frame), then instead of resetting, the scale and position are adjusted by the ratios of the old image's width/height and the new image's width/height.
