@@ -16,6 +16,10 @@ I have been using drop shadows (I called them "soft shadows") for over a decade 
 
 This patch updates the scribus134 loader to also load drop shadow data, so that I can load my old files correctly. 
 
+### Prevent hyphenation on a per-word basis
+
+This patch allows you to disable automatic hyphenation of a single word in a text by prepending it with a soft hyphen (U+00AD). If I recall correctly (it's been a long time), this is how InDesign does it.
+
 ### Image orientation
 
 This patch allows changing the orientation of an image in steps of 90 degrees without having to rotate the image frame. Scribus 1.5+ has this feature built in (with arbitrary angles), but 1.4.x didn't, and I have lots of files that make use of this patch. And because my orientation functionality cannot be easily converted to the native rotation functionality (because you'd need the dimensions of the image), I'm just keeping it around, even though I now have *two* ways to rotate images inside the image frame.

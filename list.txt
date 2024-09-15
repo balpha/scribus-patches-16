@@ -1,5 +1,6 @@
 soft-hyphen-visible-in-story-editor.patch
 load-soft-shadows-from-134-files.patch
+prepend-soft-hyphen-to-disable-hyphenation.patch
 image-orientation.patch
 auto-contrast.patch
 image-effects-before-color-management.patch

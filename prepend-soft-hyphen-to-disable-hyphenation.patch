@@ -1,0 +1,16 @@
+Index: Scribus/scribus/hyphenator.cpp
+===================================================================
+--- Scribus/scribus/hyphenator.cpp	(Revision 26264)
++++ Scribus/scribus/hyphenator.cpp	(Arbeitskopie)
+@@ -162,6 +162,11 @@
+ 		int lastC = pos;
+ 		int countC = lastC - firstC;
+ 
++		if (firstC > 0 && text.at(firstC - 1) == SpecialChars::SHYPHEN)
++		{
++			continue;
++		}
++
+ 		const CharStyle& style = it->itemText.charStyle(firstC);
+ 		if (countC > 0 && countC > style.hyphenWordMin() - 1)
+ 		{
