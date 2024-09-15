@@ -6,7 +6,9 @@ DIR=$( pwd )
 
 tac list.txt | while read L; do
 	pushd $CODEDIR > /dev/null
-	echo "### $L ###"
-	patch -p0 --reverse < "$DIR/$L"
+	echo "----------------------------------------"
+	echo "$L"
+	echo "----------------------------------------"
+	patch -p0 --reverse < "$DIR/$L" | sed 's/^/  /'
 	popd > /dev/null
 done
