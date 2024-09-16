@@ -74,9 +74,9 @@ I have this small issue where on my multi-monitor setup, palettes often open on 
 
 ### Redraw generously when moving objects with arrow keys
 
-After moving an object via the properties palette, Scribus redraws the whole window, but after moving an object with the arrow keys, it only redraws the immediate area of that object. That may not be enough, especial if the object (or one close by) has a drop shadow, and can cause artifacts.
+After moving an object via the properties palette, Scribus redraws the whole window, but after moving an object with the arrow keys, it only redraws the immediate area of that object. That may not be enough, especially if the object (or one close by) has a drop shadow, and can cause artifacts.
 
-This patch modifies this behaviour such that moving objects with the arrow, the whole window is redrawn as well. This causes things to look correctly, but it does come with a noticable performance degradation.
+This patch modifies this behaviour such that when moving objects with the arrows, the whole window is redrawn as well. This causes things to look correctly, but it does come with a noticable performance degradation.
 
 # License
 
