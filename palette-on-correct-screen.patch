@@ -1,0 +1,21 @@
+Index: Scribus/scribus/ui/scdockpalette.cpp
+===================================================================
+--- Scribus/scribus/ui/scdockpalette.cpp	(Revision 26264)
++++ Scribus/scribus/ui/scdockpalette.cpp	(Arbeitskopie)
+@@ -30,6 +30,7 @@
+ #include <QHideEvent>
+ #include <QMainWindow>
+ #include <QPoint>
++#include <QScreen>
+ 
+ #include "iconmanager.h"
+ #include "prefscontext.h"
+@@ -140,7 +141,7 @@
+ 		const QDesktopWidget *d = QApplication::desktop();
+ 		if (m_palettePrefs->contains("left"))
+ 		{
+-			QRect scr = QApplication::desktop()->availableGeometry(this);
++			QRect scr = parentWidget()->window()->screen()->availableGeometry();
+ 			// all palettes should have enough room for 3x3 min widgets
+ 			int vwidth  = qMax(0, qMin(m_palettePrefs->getInt("width"), d->width()));
+ 			int vheight = qMax(0, qMin(m_palettePrefs->getInt("height"), d->height()));

@@ -2,7 +2,7 @@
 
 This repository is a collection of patches that I apply on top of my version of [Scribus](http://www.scribus.net/canvas/Scribus) to add a few features I miss. Feel free to use them as well, but be aware that they are very specific to the way I use Scribus, and that they **should be considered incomplete** (e.g. missing undo/redo functionality, sub-par UI, etc.)
 
-This is a work-in-progress port of my old patches to a modern version (1.6.2 at the time of writing) of Scribus. You can find the originals at https://github.com/balpha/scribus-patches-13.
+This is a work-in-progress port of my old patches to a modern version (1.6.2 at the time of writing) of Scribus. You can find the originals at https://github.com/balpha/scribus-patches-13. Some of the old ones are no longer necessary, and there's also some new ones here.
 
 # Description of the patches
 
@@ -67,6 +67,10 @@ When an image frame already contains a picture and you load a new one, Scribus r
 The use case for this is replacing a picture with another picture that has the same content but different dimensions (for example, a higher-resolution scan of the same photo). With this patch, the new image would be cropped and scaled to show exactly what the old image did.
 
 If you replace an image with an unrelated image (and the frame uses manual scaling), the resulting scale and offset therefore won't make much sense, but a) this is probably rare, and b) with Scribus' built-in behavior, chances are that the values aren't the desired ones either, and thus you'd have to adjust them in either case.
+
+### Open palettes on correct screen
+
+I have this small issue where on my multi-monitor setup, palettes often open on the incorrect screen after restarting Scribus. This small bug seems to be fixed in the Scribus trunk, but in Scribus 1.6 it still exists, so this patch fixes the problem for me.
 
 # License
 
