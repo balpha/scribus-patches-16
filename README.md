@@ -72,6 +72,12 @@ If you replace an image with an unrelated image (and the frame uses manual scali
 
 I have this small issue where on my multi-monitor setup, palettes often open on the incorrect screen after restarting Scribus. This small bug seems to be fixed in the Scribus trunk, but in Scribus 1.6 it still exists, so this patch fixes the problem for me.
 
+### Redraw generously when moving objects with arrow keys
+
+After moving an object via the properties palette, Scribus redraws the whole window, but after moving an object with the arrow keys, it only redraws the immediate area of that object. That may not be enough, especial if the object (or one close by) has a drop shadow, and can cause artifacts.
+
+This patch modifies this behaviour such that moving objects with the arrow, the whole window is redrawn as well. This causes things to look correctly, but it does come with a noticable performance degradation.
+
 # License
 
 Scribus itself is copyright 2001–2024 Franz Schmid and rest of the members of the Scribus Team and for the most part licensed under GPLv2+. See their file [COPYING](https://github.com/scribusproject/scribus/blob/master/COPYING) for details.

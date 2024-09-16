@@ -7,3 +7,4 @@ image-effects-before-color-management.patch
 image-reload-progress-bar.patch
 keep-image-scale-and-position.patch
 palette-on-correct-screen.patch
+redraw-generously-after-moving.patch

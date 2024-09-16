@@ -1,0 +1,13 @@
+Index: Scribus/scribus/scribusdoc.cpp
+===================================================================
+--- Scribus/scribus/scribusdoc.cpp	(Revision 26264)
++++ Scribus/scribus/scribusdoc.cpp	(Arbeitskopie)
+@@ -14806,7 +14806,7 @@
+ 		GroupOnPage(currItem);
+ 	}
+ 	oldRect = oldRect.united(QRectF(gx, gy, gw, gh));
+-	regionsChanged()->update(oldRect.adjusted(-10, -10, 20, 20));
++	regionsChanged()->update(QRectF());
+ }
+ 
+ void ScribusDoc::rotateGroup(double angle, Selection* customSelection)
