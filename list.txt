@@ -4,7 +4,7 @@ prepend-soft-hyphen-to-disable-hyphenation.patch
 image-orientation.patch
 auto-contrast.patch
 image-effects-before-color-management.patch
-image-reload-progress-bar.patch
+image-load-responsiveness.patch
 keep-image-scale-and-position.patch
 palette-on-correct-screen.patch
 redraw-generously-after-moving.patch

@@ -56,9 +56,17 @@ This patch changes this order; image effects are applied on the original image d
 
 If you use both color management and image effects, this patch is a **major change**, and it's not hidden behind a setting -- all your files will suddenly behave differently. So make very sure you want to apply it.
 
-### Progress bar for image recalc during document load
+### Image loading responsiveness
 
-This is a very small patch. When opening a document that uses color management, Scribus will load every image twice. [Here's the corresponding bug report](http://bugs.scribus.net/view.php?id=9826). This patch does *not* fix this (it would be a pretty big change, given how image loading works behind the scenes). All this patch does is making this issue a bit more bearable, especially for documents with lots of images, by reflecting it in the progress indicator the status bar. That means the bar will fill up to 100% *twice* when loading a (color-managed) document. But at least there's no minute-long pause during which you have no idea what's happening.
+When you have a document with a lot of images, especially when using color management, then loading the file or changing color management settings can take quite some time, and often trigger "The application is not responding" warnings.
+
+This patch makes no performance improvements, but it does make the experience better in the following ways:
+
+- prevent the "not responding" warning
+- when recalculating images, make the progress bar more representative of elapsed and expected time
+- represent the initial image recalc that happens during loading of color managed documents in the progress bar
+
+A note on the third bullet: When opening a document that uses color management, Scribus will load every image twice. [Here's the corresponding bug report](http://bugs.scribus.net/view.php?id=9826). This patch does *not* fix this (it would be a pretty big change, given how image loading works behind the scenes). But it makes this bit more bearable, especially for documents with lots of images, by reflecting it in the progress indicator the status bar. That means the bar will fill up to 100% *twice* when loading a (color-managed) document. But at least there's no minute-long pause during which you have no idea what's happening.
 
 ### Keep scale and position when replacing images
 

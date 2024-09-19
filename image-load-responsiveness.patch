@@ -1,0 +1,160 @@
+Index: Scribus/scribus/plugins/fileloader/scribus134format/scribus134format.cpp
+===================================================================
+--- Scribus/scribus/plugins/fileloader/scribus134format/scribus134format.cpp	(Revision 26264)
++++ Scribus/scribus/plugins/fileloader/scribus134format/scribus134format.cpp	(Arbeitskopie)
+@@ -277,6 +277,7 @@
+ 				m_mwProgressBar->setValue(reader.characterOffset());
+ 				progress = newProgress;
+ 			}
++			QApplication::processEvents();
+ 		}
+ 
+ 		if (firstElement)
+Index: Scribus/scribus/plugins/fileloader/scribus150format/scribus150format.cpp
+===================================================================
+--- Scribus/scribus/plugins/fileloader/scribus150format/scribus150format.cpp	(Revision 26264)
++++ Scribus/scribus/plugins/fileloader/scribus150format/scribus150format.cpp	(Arbeitskopie)
+@@ -1679,6 +1679,7 @@
+ 				m_mwProgressBar->setValue(reader.characterOffset());
+ 				progress = newProgress;
+ 			}
++			QApplication::processEvents();
+ 		}
+ 
+ 		if (firstElement)
+Index: Scribus/scribus/scribus.cpp
+===================================================================
+--- Scribus/scribus/scribus.cpp	(Revision 26264)
++++ Scribus/scribus/scribus.cpp	(Arbeitskopie)
+@@ -1552,7 +1552,43 @@
+ 	m_statusLabelText = newText;
+ }
+ 
++void ScribusMainWindow::setProgressBarMaxToImageCount()
++{
++	if (!doc)
++	{
++		mainWindowProgressBar->setMaximum(0);
++		return;
++	}
++	QList<PageItem*> items(doc->MasterItems);
++	items += doc->DocItems;
++	items += doc->FrameItems.values();
++	int docItemCount = items.count();
++	int docImageCount = 0;
++	QList<PageItem*> allItems;
++	PageItem* it;
++	for (int i=0; i < docItemCount; ++i)
++	{
++		it = items.at(i);
++		if (it->isGroup())
++			allItems = it->getAllChildren();
++		else
++			allItems.append(it);
++		for (int j = 0; j < allItems.count(); j++)
++		{
++			it = allItems.at(j);
++			if ((it->itemType() == PageItem::ImageFrame) && (it->imageIsAvailable))
++			{
++				docImageCount++;
++				break; // the inner for loop
++			}
++		}
++		allItems.clear();
++	}
++	mainWindowProgressBar->setMaximum(docImageCount);
++}
+ 
++
++
+ //AV to be replaced with Selection::update and listener in contentPalette
+ void ScribusMainWindow::setTBvals(PageItem *currItem)
+ {
+@@ -3562,8 +3598,12 @@
+ 			}
+ 			if (doc->HasCMS)
+ 			{
++				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+ 				recalcColors();
+-				doc->RecalcPictures(&ScCore->InputProfiles, &ScCore->InputProfilesCMYK);
++				setProgressBarMaxToImageCount();
++				mainWindowProgressBar->setValue(0);
++				doc->RecalcPictures(&ScCore->InputProfiles, &ScCore->InputProfilesCMYK, mainWindowProgressBar);
++				QApplication::restoreOverrideCursor();
+ 			}
+ 		}
+ 		else
+Index: Scribus/scribus/scribus.h
+===================================================================
+--- Scribus/scribus/scribus.h	(Revision 26264)
++++ Scribus/scribus/scribus.h	(Arbeitskopie)
+@@ -300,6 +300,7 @@
+ 	void setStatusBarTextSelectedItemInfo();
+ 	void setTempStatusBarText(const QString &text);
+ 	void setStatusBarInfoText(const QString& newText);
++	void setProgressBarMaxToImageCount();
+ 	bool DoFileClose();
+ 	void windowsMenuAboutToShow();
+ 	//! \brief Handle the Extras menu for its items availability.
+Index: Scribus/scribus/scribusdoc.cpp
+===================================================================
+--- Scribus/scribus/scribusdoc.cpp	(Revision 26264)
++++ Scribus/scribus/scribusdoc.cpp	(Arbeitskopie)
+@@ -963,8 +963,7 @@
+ {
+ 	m_ScMW->setStatusBarInfoText( tr("Adjusting Colors"));
+ 	m_ScMW->mainWindowProgressBar->reset();
+-	int progressBarCount = PageColors.count() + MasterItems.count() + DocItems.count() + FrameItems.count();
+-	m_ScMW->mainWindowProgressBar->setMaximum(progressBarCount);
++	m_ScMW->setProgressBarMaxToImageCount();
+ 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+ 	bool oldCM = m_docPrefsData.colorPrefs.DCMSset.CMSinUse;
+ 	bool newCM = enable;
+@@ -1002,7 +1001,6 @@
+ 		SetDefaultCMSParams();
+ 		HasCMS = false;
+ 	}
+-	m_ScMW->mainWindowProgressBar->setValue(progressBarCount);
+ 	QApplication::restoreOverrideCursor();
+ 	m_ScMW->setStatusBarInfoText("");
+ 	m_ScMW->mainWindowProgressBar->reset();
+@@ -7327,6 +7325,7 @@
+ 	int docItemCount = items->count();
+ 	for (int i=0; i < docItemCount; ++i)
+ 	{
++		bool any = false;
+ 		it = items->at(i);
+ 		if (it->isGroup())
+ 			allItems = it->getAllChildren();
+@@ -7348,14 +7347,19 @@
+ 						it->ImageProfile = m_docPrefsData.colorPrefs.DCMSset.DefaultImageRGBProfile;
+ 				}
+ 				loadPict(it->Pfile, it, true);
++				any = true;
+ 			}
+ 		}
+ 		allItems.clear();
+ 		if (usingGUI)
+ 		{
+-			++counter;
+-			if (dia != nullptr)
+-				dia->setValue(counter);
++			if (any)
++			{
++				++counter;
++				if (dia != nullptr)
++					dia->setValue(counter);
++			}
++			QApplication::processEvents();
+ 		}
+ 	}
+ }
+@@ -16497,6 +16501,8 @@
+ 			if (updCol)
+ 			{
+ 				m_ScMW->recalcColors();
++				m_ScMW->setProgressBarMaxToImageCount();
++				m_ScMW->mainWindowProgressBar->setValue(0);
+ 				RecalcPictures(&ScCore->InputProfiles, &ScCore->InputProfilesCMYK, m_ScMW->mainWindowProgressBar);
+ 			}
+ 			m_ScMW->mainWindowProgressBar->setValue(cc);
