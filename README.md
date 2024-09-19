@@ -16,6 +16,16 @@ I have been using drop shadows (I called them "soft shadows") for over a decade 
 
 This patch updates the scribus134 loader to also load drop shadow data, so that I can load my old files correctly. 
 
+### New layer option: Text always flows
+
+Scribus allows for text to flow around an arbitrary object by setting one of the corresponding options in the properties palette's "Shape" tab. However this only works if the flow-around object sits *above* the text box (either on a higher layer, or on the same layer but higher than the text). Since I sometimes need the text to flow around objects that are on a lower layer, this patch adds a new column of checkboxes to the layer palette (disabled by default).
+
+When you enable this setting on a layer, any text on this layer will flow around *all* objects that have a "text flows around" setting, regardless of whether these objects sit above or below the text. To clarify: You set this property on the layer that *contains the text*, not the flow-around object.
+
+When changing this setting, you may have to force Scribus to re-flow the affected text boxes by moving them (just press left arrow then right arrow) or by saving and re-opening the document.
+
+Note that this, too, is a **file format change**. If you save a .sla document where you have enabled this setting for a layer, then open and re-save this document with an *unpatched* version of Scribus, the setting will be disabled even if you later open the file in the patched version again. Because vanilla Scribus doesn't know about this feature, it ignores the "text always flows" settings when opening a document, and does not persist them when re-saving it.
+
 ### Prevent hyphenation on a per-word basis
 
 This patch allows you to disable automatic hyphenation of a single word in a text by prepending it with a soft hyphen (U+00AD). If I recall correctly (it's been a long time), this is how InDesign does it.
